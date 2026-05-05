@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --yellow: #fae880;
+      --yellow: #faf5e0;
       --orange: #e8623a;
       --orange-dark: #c84e28;
       --btn: #f8a20e;
@@ -930,25 +930,6 @@
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
     }
-    /* 이미지 배경색 자동 추출 */
-    (() => {
-      const img = document.querySelector('.machine-img');
-      function sampleBg() {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = canvas.height = 1;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, 1, 1);
-          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
-          if (r === 0 && g === 0 && b === 0) return;
-          const hex = '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
-          document.documentElement.style.setProperty('--yellow', hex);
-          document.body.style.background = hex;
-        } catch(e) {}
-      }
-      if (img.complete) sampleBg();
-      else img.addEventListener('load', sampleBg);
-    })();
 
     /* type="module" 스크립트에서 inline onclick 사용을 위해 전역 노출 */
     window.switchTab    = switchTab;
