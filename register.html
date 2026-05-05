@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>행운 등록 | 행운제조기</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --yellow: #fae880;
+      --orange: #e8623a;
+      --orange-dark: #c84e28;
+      --orange-light: #f0845a;
+      --text: #7a3a18;
+      --muted: #b87848;
+      --card: #fffef0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .svg-filters { position: fixed; width: 0; height: 0; pointer-events: none; }
+
+    body {
+      min-height: 100vh;
+      background: var(--yellow);
+      font-family: 'Gaegu', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 70px;
+      color: var(--text);
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 40px 24px 0;
+    }
+
+    .site-title {
+      font-size: 3.4rem;
+      color: var(--orange);
+      display: inline-block;
+      filter: url(#crayon);
+      text-shadow: 3px 3px 0 rgba(200,80,40,.2);
+    }
+
+    .crayon-line {
+      width: 80%;
+      height: 6px;
+      background: var(--orange);
+      border-radius: 50%;
+      margin: 6px auto 0;
+      filter: url(#crayon);
+      opacity: .7;
+    }
+
+    .site-subtitle {
+      font-size: 1.3rem;
+      color: var(--muted);
+      margin-top: 8px;
+      filter: url(#crayon);
+    }
+
+    nav {
+      margin-top: 18px;
+      display: flex;
+      gap: 20px;
+    }
+
+    nav a {
+      font-size: 1.25rem;
+      color: var(--orange-dark);
+      text-decoration: none;
+      padding: 7px 24px;
+      border-radius: 50px;
+      border: 3px solid var(--orange);
+      background: rgba(255,255,255,.55);
+      transition: background .2s, color .2s;
+      filter: url(#crayon);
+    }
+
+    nav a.active,
+    nav a:hover {
+      background: var(--orange);
+      color: #fff;
+    }
+
+    /* ── 폼 카드 ── */
+    .form-card {
+      position: relative;
+      z-index: 2;
+      width: min(460px, 92vw);
+      margin-top: 30px;
+      background: var(--card);
+      border: 4px solid var(--orange);
+      border-radius: 24px;
+      padding: 32px 30px 36px;
+      filter: url(#crayon);
+      box-shadow: 6px 6px 0 var(--orange-dark), 10px 10px 0 rgba(200,80,40,.15);
+    }
+
+    .form-title {
+      text-align: center;
+      font-size: 1.6rem;
+      color: var(--orange);
+      margin-bottom: 22px;
+      letter-spacing: 1px;
+    }
+
+    /* 이미지 업로드 */
+    .upload-area {
+      width: 100%;
+      aspect-ratio: 1/1;
+      border: 4px dashed var(--orange);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .2s;
+      position: relative;
+      overflow: hidden;
+      background: rgba(255,232,128,.25);
+    }
+
+    .upload-area:hover { background: rgba(255,232,128,.5); }
+
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+    }
+
+    .upload-icon { font-size: 3.2rem; }
+
+    .upload-text {
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .upload-area img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+
+    label {
+      display: block;
+      font-size: 1.35rem;
+      color: var(--muted);
+      margin: 20px 0 8px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      border: 3px solid var(--orange);
+      border-radius: 16px;
+      background: rgba(255,232,128,.2);
+      font-family: 'Gaegu', cursive;
+      font-size: 1.35rem;
+      color: var(--text);
+      padding: 12px 16px;
+      resize: none;
+      outline: none;
+      transition: border-color .2s;
+      line-height: 1.5;
+    }
+
+    textarea:focus { border-color: var(--orange-dark); background: rgba(255,232,128,.35); }
+    textarea::placeholder { color: #c8a060; }
+
+    /* 등록 버튼 */
+    .submit-btn {
+      display: block;
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      font-family: 'Gaegu', cursive;
+      font-size: 1.75rem;
+      color: #fff;
+      background: var(--orange);
+      border: none;
+      border-radius: 60px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 var(--orange-dark), 0 9px 18px rgba(200,80,40,.25);
+      transition: transform .08s, box-shadow .08s;
+      letter-spacing: 1px;
+      filter: url(#crayon);
+    }
+
+    .submit-btn:hover { filter: url(#crayon) brightness(1.06); }
+
+    .submit-btn:active {
+      transform: translateY(5px);
+      box-shadow: none;
+    }
+
+    /* 토스트 */
+    .toast {
+      position: fixed;
+      bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: var(--orange);
+      color: #fff;
+      font-size: 1.3rem;
+      padding: 13px 32px;
+      border-radius: 60px;
+      box-shadow: 0 4px 0 var(--orange-dark), 0 8px 18px rgba(200,80,40,.25);
+      transition: transform .38s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 100;
+      filter: url(#crayon);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── 목록 ── */
+    .list-section {
+      position: relative;
+      z-index: 2;
+      width: min(460px, 92vw);
+      margin-top: 42px;
+    }
+
+    .list-title {
+      font-size: 1.8rem;
+      color: var(--orange);
+      text-align: center;
+      margin-bottom: 8px;
+      filter: url(#crayon);
+    }
+
+    .list-title-line {
+      width: 60%;
+      height: 5px;
+      background: var(--orange);
+      border-radius: 50%;
+      margin: 0 auto 24px;
+      opacity: .6;
+      filter: url(#crayon);
+    }
+
+    .fortune-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+    }
+
+    /* 미니 폴라로이드 */
+    .mini-polaroid {
+      background: #fffef8;
+      padding: 9px 9px 46px;
+      box-shadow: 3px 4px 10px rgba(150,80,30,.18);
+      transform: rotate(var(--rot));
+      transition: transform .22s, box-shadow .22s;
+      position: relative;
+      cursor: default;
+      filter: url(#crayon);
+    }
+
+    .mini-polaroid:hover {
+      transform: rotate(0deg) scale(1.05);
+      box-shadow: 5px 7px 20px rgba(150,80,30,.25);
+      z-index: 3;
+    }
+
+    .mini-polaroid img {
+      width: 100%; aspect-ratio: 1/1;
+      object-fit: cover; display: block;
+    }
+
+    .mini-placeholder {
+      width: 100%; aspect-ratio: 1/1;
+      background: linear-gradient(135deg, #fde8b0, #faf0c0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+    }
+
+    .mini-msg {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 5px 8px 10px;
+      font-size: 1.05rem;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.3;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* 이미지 없는 카드 — 정사각형 */
+    .mini-polaroid.no-image {
+      padding: 9px;
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mini-polaroid.no-image .mini-msg {
+      position: static;
+      padding: 0 10px;
+      font-size: 1.1rem;
+      line-height: 1.45;
+      -webkit-line-clamp: 5;
+      word-break: keep-all;
+    }
+
+    .del-btn {
+      position: absolute;
+      top: 5px; right: 7px;
+      background: rgba(232,98,58,.85);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 23px; height: 23px;
+      font-size: .85rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mini-polaroid:hover .del-btn { display: flex; }
+
+    .empty-msg {
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.3rem;
+      padding: 24px 0;
+      filter: url(#crayon);
+    }
+
+    /* 장식 */
+    .deco {
+      position: fixed;
+      pointer-events: none;
+      font-size: 1.6rem;
+      opacity: .28;
+      animation: floatY 5.5s ease-in-out infinite alternate;
+      z-index: 1;
+    }
+
+    @keyframes floatY {
+      from { transform: translateY(0) rotate(-6deg); }
+      to   { transform: translateY(-15px) rotate(6deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <svg class="svg-filters" aria-hidden="true">
+    <defs>
+      <filter id="crayon" x="-4%" y="-4%" width="108%" height="108%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8"
+          xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <span class="deco" style="top:8%;  left:5%;  animation-delay:0s">🍊</span>
+  <span class="deco" style="top:18%; right:7%; animation-delay:.9s; font-size:1.3rem">⭐</span>
+  <span class="deco" style="top:65%; left:4%;  animation-delay:1.8s">🌼</span>
+  <span class="deco" style="top:50%; right:5%; animation-delay:.4s; font-size:1.4rem">🍀</span>
+  <span class="deco" style="top:84%; left:11%;animation-delay:2.4s; font-size:1.1rem">✦</span>
+
+  <header>
+    <h1 class="site-title">행운제조기</h1>
+    <div class="crayon-line"></div>
+    <p class="site-subtitle">나만의 행운을 만들어봐요 🌟</p>
+    <nav>
+      <a href="index.html">🎰 뽑기</a>
+      <a href="register.html" class="active">📝 행운 등록</a>
+    </nav>
+  </header>
+
+  <div class="form-card">
+    <p class="form-title">✦ 행운 등록하기 ✦</p>
+
+    <div class="upload-area" id="uploadArea">
+      <input type="file" accept="image/*" id="fileInput" onchange="handleFile(this)" />
+      <span class="upload-icon">🖼️</span>
+      <span class="upload-text">사진을 눌러 업로드해요</span>
+    </div>
+
+    <label for="msgInput">✍️ 나의 행운</label>
+    <textarea id="msgInput"
+      placeholder="오늘 하루도 좋은 일만 가득하길 바라요 ✨"
+      maxlength="80"></textarea>
+
+    <button class="submit-btn" onclick="saveFortune()">🍀 행운 등록!</button>
+  </div>
+
+  <div class="list-section">
+    <p class="list-title">✦ 등록된 행운들 ✦</p>
+    <div class="list-title-line"></div>
+    <div class="fortune-grid" id="fortuneGrid"></div>
+    <p class="empty-msg" id="emptyMsg" style="display:none">아직 등록된 행운이 없어요 🥺</p>
+  </div>
+
+  <div class="toast" id="toast">🍀 행운이 등록됐어요!</div>
+
+  <script>
+    const KEY = 'haengwoon_fortunes';
+    let previewUrl = null;
+
+    function handleFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewUrl = e.target.result;
+        const area = document.getElementById('uploadArea');
+        area.querySelector('img')?.remove();
+        area.querySelector('.upload-icon').style.display = 'none';
+        area.querySelector('.upload-text').style.display = 'none';
+        const img = document.createElement('img');
+        img.src = previewUrl;
+        area.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveFortune() {
+      const msg = document.getElementById('msgInput').value.trim();
+      if (!msg) { document.getElementById('msgInput').focus(); return; }
+
+      const list = JSON.parse(localStorage.getItem(KEY) || '[]');
+      list.push({ id: Date.now(), image: previewUrl, message: msg });
+      localStorage.setItem(KEY, JSON.stringify(list));
+
+      previewUrl = null;
+      document.getElementById('msgInput').value = '';
+      document.getElementById('fileInput').value = '';
+      const area = document.getElementById('uploadArea');
+      area.querySelector('img')?.remove();
+      area.querySelector('.upload-icon').style.display = '';
+      area.querySelector('.upload-text').style.display = '';
+
+      showToast();
+      renderList();
+    }
+
+    function deleteFortune(id) {
+      const list = JSON.parse(localStorage.getItem(KEY) || '[]').filter(f => f.id !== id);
+      localStorage.setItem(KEY, JSON.stringify(list));
+      renderList();
+    }
+
+    const ROTS = [-4, -2, 1, 3, -3, 2, -1, 4];
+
+    function renderList() {
+      const list  = JSON.parse(localStorage.getItem(KEY) || '[]');
+      const grid  = document.getElementById('fortuneGrid');
+      const empty = document.getElementById('emptyMsg');
+
+      if (!list.length) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      grid.innerHTML = list.map((f, i) => `
+        <div class="mini-polaroid${f.image ? '' : ' no-image'}" style="--rot:${ROTS[i % ROTS.length]}deg">
+          ${f.image ? `<img src="${f.image}" alt="행운 이미지">` : ''}
+          <div class="mini-msg">${esc(f.message)}</div>
+          <button class="del-btn" onclick="deleteFortune(${f.id})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function showToast() {
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    renderList();
+  </script>
+</body>
+</html>

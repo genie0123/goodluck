@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>행운제조기 ✨</title>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --yellow: #fae880;
+      --orange: #e8623a;
+      --orange-dark: #c84e28;
+      --btn: #f8a20e;
+      --btn-dark: #c8800a;
+      --text: #7a3a18;
+      --muted: #b87848;
+      --card: #fffef0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .svg-filters { position: fixed; width: 0; height: 0; pointer-events: none; }
+
+    body {
+      height: 100dvh;
+      background: var(--yellow);
+      font-family: 'Gaegu', cursive;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+      color: var(--text);
+      position: relative;
+    }
+
+    body.scrollable {
+      height: auto;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding-bottom: 40px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      position: relative; z-index: 2;
+      text-align: center;
+      padding: 18px 24px 0;
+    }
+
+    .site-title {
+      font-size: 2.6rem;
+      color: var(--orange);
+      display: inline-block;
+      filter: url(#crayon);
+      text-shadow: 3px 3px 0 rgba(200,80,40,.2);
+    }
+
+    .crayon-line {
+      width: 80%; height: 5px;
+      background: var(--orange);
+      border-radius: 50%;
+      margin: 4px auto 0;
+      filter: url(#crayon);
+      opacity: .7;
+    }
+
+    .site-subtitle {
+      font-size: 1.3rem; color: var(--muted);
+      margin-top: 8px; filter: url(#crayon);
+    }
+
+    /* ── 탭 네비 ── */
+    nav {
+      margin-top: 12px;
+      display: flex; gap: 7px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 92vw;
+      padding: 2px 4px;
+      position: relative; z-index: 2;
+    }
+
+    .tab-btn {
+      font-family: 'Gaegu', cursive;
+      font-size: 1rem;
+      color: var(--btn-dark);
+      padding: 5px 14px;
+      border-radius: 50px;
+      border: 3px solid var(--btn);
+      background: rgba(255,255,255,.55);
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background .18s, color .18s;
+      filter: url(#crayon);
+    }
+
+    .tab-btn.active,
+    .tab-btn:hover {
+      background: var(--btn);
+      color: #fff;
+    }
+
+    /* ── 뷰 전환 ── */
+    .view { display: none; width: 100%; }
+    .view.active { display: flex; flex-direction: column; align-items: center; }
+
+    /* ── 뽑기 섹션 (항상 표시) ── */
+    #draw-section {
+      display: flex; flex-direction: column; align-items: center;
+      width: 100%;
+    }
+
+    /* ════════════════════════
+       뷰 1 : 뽑기
+    ════════════════════════ */
+
+    /* 뽑기 기계 */
+    .machine-wrap {
+      position: relative; z-index: 2;
+      width: min(500px, 92vw);
+      overflow: hidden;
+      margin: -20px auto -30px;
+      will-change: transform;
+    }
+
+    .machine-wrap.mixing { animation: shake .55s ease-in-out infinite; }
+
+    @keyframes shake {
+      0%,100% { transform: rotate(0) translateX(0); }
+      15% { transform: rotate(-6deg) translateX(-5px); }
+      30% { transform: rotate(6deg)  translateX(5px); }
+      45% { transform: rotate(-4deg) translateX(-3px); }
+      60% { transform: rotate(4deg)  translateX(3px); }
+      80% { transform: rotate(-2deg) translateX(-1px); }
+    }
+
+    .balls {
+      will-change: transform;
+      position: absolute;
+      left: 22%;
+      top: 10%;
+      width: 56%;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .balls.mixing {
+      animation: spinBalls 1.1s linear infinite;
+      transform-origin: center;
+    }
+
+    @keyframes spinBalls {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .machine-img {
+      width: 200%;
+      display: block;
+      margin-left: -50%;
+    }
+
+    .ball {
+      position: absolute;
+      border-radius: 50%;
+      box-shadow: 2px 3px 6px rgba(0,0,0,.15);
+    }
+
+    .dispensed-ball {
+      position: absolute;
+      bottom: 50px; left: 50%;
+      transform: translateX(-50%);
+      width: 26px; height: 26px;
+      border-radius: 50%; opacity: 0; z-index: 10;
+    }
+
+    .dispensed-ball.dropping { animation: drop .65s ease-in forwards; }
+
+    @keyframes drop {
+      0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(60px); }
+    }
+
+    .draw-subtitle {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-top: 10px;
+      margin-bottom: 2px;
+      filter: url(#crayon);
+      position: relative; z-index: 2;
+    }
+
+    .draw-definition {
+      margin-top: 10px;
+      margin-bottom: 0;
+    }
+
+    /* 뽑기 버튼 */
+    .draw-btn {
+      position: relative; z-index: 2;
+      margin-top: 6px; padding: 12px 36px;
+      font-family: 'Gaegu', cursive;
+      font-size: 1.6rem; color: #fff;
+      background: var(--btn); border: none; border-radius: 60px; cursor: pointer;
+      box-shadow: 0 5px 0 var(--btn-dark), 0 8px 16px rgba(200,160,10,.25);
+      transition: transform .08s, box-shadow .08s;
+      filter: url(#crayon);
+    }
+    .draw-btn:hover { filter: url(#crayon) brightness(1.07); }
+    .draw-btn:active { transform: translateY(6px); box-shadow: none; }
+    .draw-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: 0 6px 0 var(--btn-dark); }
+
+    .empty-notice {
+      display: none; position: relative; z-index: 2;
+      margin-top: 14px; font-size: 1.2rem; color: var(--muted); text-align: center;
+    }
+    .empty-notice span { color: var(--orange-dark); cursor: pointer; border-bottom: 1px solid var(--orange-dark); }
+
+    /* ════════════════════════
+       뷰 2 : 등록
+    ════════════════════════ */
+    /* 뷰 3: 사람들 */
+    #view-people.active { display: flex; }
+
+    .people-section {
+      position: relative; z-index: 2;
+      width: min(460px, 92vw);
+      margin-top: 30px;
+    }
+
+    .people-list {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px 8px;
+      padding: 10px 0 40px;
+    }
+
+    .people-name {
+      font-size: 1.7rem;
+      color: var(--text);
+      text-align: center;
+      filter: url(#crayon);
+      animation: fadeUp .5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #view-register {
+      flex-direction: column;
+      align-items: center;
+    }
+    #view-register.active { display: flex; }
+
+    .form-card {
+      position: relative; z-index: 2;
+      width: min(460px, 92vw);
+      margin-top: 30px;
+      background: var(--card);
+      border: 4px solid var(--orange); border-radius: 24px;
+      padding: 32px 30px 36px;
+      filter: url(#crayon);
+      box-shadow: 6px 6px 0 var(--orange-dark), 10px 10px 0 rgba(200,80,40,.15);
+    }
+
+    .form-title {
+      text-align: center; font-size: 1.6rem;
+      color: var(--orange); margin-bottom: 22px; letter-spacing: 1px;
+    }
+
+    .upload-area {
+      width: 100%; aspect-ratio: 1/1;
+      border: 4px dashed var(--orange); border-radius: 18px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      cursor: pointer; transition: background .2s;
+      position: relative; overflow: hidden;
+      background: rgba(255,232,128,.25);
+    }
+
+    .upload-area:hover { background: rgba(255,232,128,.5); }
+    .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-icon { font-size: 3.2rem; }
+    .upload-text { font-size: 1.2rem; color: var(--muted); margin-top: 10px; }
+    .upload-area img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+    label { display: block; font-size: 1.35rem; color: var(--muted); margin: 20px 0 8px; }
+
+    .nick-input {
+      width: 100%;
+      border: 3px solid var(--orange); border-radius: 16px;
+      background: rgba(255,232,128,.2);
+      font-family: 'Gaegu', cursive;
+      font-size: 1.35rem; color: var(--text);
+      padding: 12px 16px; outline: none;
+      transition: border-color .2s;
+    }
+    .nick-input:focus { border-color: var(--orange-dark); background: rgba(255,232,128,.35); }
+    .nick-input::placeholder { color: #c8a060; }
+
+    textarea {
+      width: 100%; height: 100px;
+      border: 3px solid var(--orange); border-radius: 16px;
+      background: rgba(255,232,128,.2);
+      font-family: 'Gaegu', cursive;
+      font-size: 1.35rem; color: var(--text);
+      padding: 12px 16px; resize: none; outline: none;
+      transition: border-color .2s; line-height: 1.5;
+    }
+    textarea:focus { border-color: var(--orange-dark); background: rgba(255,232,128,.35); }
+    textarea::placeholder { color: #c8a060; }
+
+    .submit-btn {
+      display: block; width: 100%; margin-top: 22px; padding: 14px;
+      font-family: 'Gaegu', cursive; font-size: 1.75rem;
+      color: #fff; background: var(--btn);
+      border: none; border-radius: 60px; cursor: pointer;
+      box-shadow: 0 5px 0 var(--btn-dark), 0 9px 18px rgba(200,160,10,.25);
+      transition: transform .08s, box-shadow .08s; letter-spacing: 1px;
+      filter: url(#crayon);
+    }
+    .submit-btn:hover { filter: url(#crayon) brightness(1.06); }
+    .submit-btn:active { transform: translateY(5px); box-shadow: none; }
+
+    /* 목록 */
+    .list-section {
+      position: relative; z-index: 2;
+      width: min(460px, 92vw); margin-top: 42px;
+    }
+
+    .list-title { font-size: 1.8rem; color: var(--orange); text-align: center; margin-bottom: 8px; filter: url(#crayon); }
+
+    .list-title-line {
+      width: 60%; height: 5px; background: var(--orange);
+      border-radius: 50%; margin: 0 auto 24px; opacity: .6; filter: url(#crayon);
+    }
+
+    .fortune-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
+
+    .mini-polaroid {
+      background: #fffef8; padding: 9px 9px 46px;
+      box-shadow: 3px 4px 10px rgba(150,80,30,.18);
+      transform: rotate(var(--rot));
+      transition: transform .22s, box-shadow .22s;
+      position: relative; cursor: default; filter: url(#crayon);
+    }
+    .mini-polaroid:hover { transform: rotate(0deg) scale(1.05); box-shadow: 5px 7px 20px rgba(150,80,30,.25); z-index: 3; }
+    .mini-polaroid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+    .mini-placeholder { width: 100%; aspect-ratio: 1/1; background: #fdfcf5; }
+    .mini-msg { position: absolute; bottom: 0; left: 0; right: 0; padding: 5px 8px 10px; font-size: 1.05rem; color: var(--text); text-align: center; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+    .mini-polaroid.no-photo {
+      background: #fdfcf5;
+      padding: 9px;
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mini-polaroid.no-photo .mini-msg {
+      position: static;
+      padding: 0 10px;
+      font-size: 1.1rem;
+      line-height: 1.45;
+      -webkit-line-clamp: 5;
+      word-break: keep-all;
+    }
+
+    .del-btn {
+      position: absolute; top: 5px; right: 7px;
+      background: rgba(232,98,58,.85); color: #fff; border: none;
+      border-radius: 50%; width: 23px; height: 23px; font-size: .85rem;
+      cursor: pointer; display: none; align-items: center; justify-content: center;
+    }
+    .mini-polaroid:hover .del-btn { display: flex; }
+    .empty-msg { text-align: center; color: var(--muted); font-size: 1.3rem; padding: 24px 0; filter: url(#crayon); }
+
+    #view-list { flex-direction: column; align-items: center; }
+    #view-list.active { display: flex; }
+
+    /* ── 폴라로이드 오버레이 ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(100,50,20,.55); backdrop-filter: blur(3px);
+      z-index: 200; align-items: center; justify-content: center;
+    }
+    .overlay.show { display: flex; }
+
+    .polaroid {
+      background: #fffef8; padding: 14px;
+      width: min(286px, 88vw);
+      box-shadow: 0 16px 48px rgba(0,0,0,.3);
+      transform: rotate(-3deg);
+      animation: popIn .45s cubic-bezier(.34,1.56,.64,1) both;
+      display: flex; flex-direction: column;
+      filter: url(#crayon);
+    }
+
+    @keyframes popIn {
+      from { transform: rotate(-3deg) scale(.25) translateY(70px); opacity: 0; }
+      to   { transform: rotate(-3deg) scale(1)   translateY(0);    opacity: 1; }
+    }
+
+    .polaroid-img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+    .polaroid-placeholder { width: 100%; aspect-ratio: 1/1; background: #fdfcf5; }
+    .polaroid.no-photo { justify-content: center; align-items: center; min-height: min(286px, 88vw); }
+    .polaroid.no-photo .polaroid-placeholder { display: none; }
+    .polaroid-msg {
+      font-family: 'Gaegu', cursive; font-size: 1.5rem; color: var(--text);
+      text-align: center; line-height: 1.5;
+      padding: 14px 8px 10px;
+      cursor: default;
+    }
+    .polaroid-msg.truncated { cursor: pointer; }
+
+    .overlay-close { position: absolute; top: 18px; right: 22px; background: none; border: none; color: #fff; font-size: 2.2rem; cursor: pointer; filter: url(#crayon); }
+
+    /* 토스트 */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(90px);
+      background: var(--orange); color: #fff; font-size: 1.3rem;
+      padding: 13px 32px; border-radius: 60px;
+      box-shadow: 0 4px 0 var(--orange-dark);
+      transition: transform .38s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none; white-space: nowrap; z-index: 100; filter: url(#crayon);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* 반짝이 */
+    .sparkle { position: fixed; pointer-events: none; font-size: 1.6rem; z-index: 300; animation: sparkleUp 1.3s ease-out forwards; }
+    @keyframes sparkleUp { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-140px) scale(.2); } }
+
+    /* 장식 */
+    .deco { position: fixed; pointer-events: none; font-size: 1.6rem; opacity: .28; animation: floatY 5.5s ease-in-out infinite alternate; z-index: 1; }
+    @keyframes floatY { from { transform:translateY(0) rotate(-6deg); } to { transform:translateY(-15px) rotate(6deg); } }
+  </style>
+</head>
+<body>
+
+  <svg class="svg-filters" aria-hidden="true">
+    <defs>
+      <filter id="crayon" x="-4%" y="-4%" width="108%" height="108%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.8" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <span class="deco" style="top:8%;  left:5%;  animation-delay:0s">🍀</span>
+  <span class="deco" style="top:16%; right:7%; animation-delay:.9s; font-size:1.3rem">🍀</span>
+  <span class="deco" style="top:68%; left:5%;  animation-delay:1.8s">🍀</span>
+  <span class="deco" style="top:55%; right:6%; animation-delay:.4s; font-size:1.4rem">🍀</span>
+
+  <header>
+    <h1 class="site-title">행운제조기</h1>
+    <div class="crayon-line"></div>
+    <p class="draw-subtitle draw-definition">행운[幸運]: 갑작스레 찾아온 행복</p>
+  </header>
+
+  <!-- 뽑기 섹션 (항상 표시) -->
+  <div id="draw-section">
+    <div class="machine-wrap" id="machine">
+      <img class="machine-img" src="machine.png?v=2" alt="행운제조기" />
+      <div class="balls" id="ballsBox"></div>
+      <div class="dispensed-ball" id="dispensedBall"></div>
+    </div>
+
+    <p class="draw-subtitle">나의 작은 행운이 그대의 행복이 되길</p>
+
+    <button class="draw-btn" id="drawBtn" onclick="drawFortune()">
+      🍀 오늘의 행운 뽑기! 🍀
+    </button>
+
+    <p class="empty-notice" id="emptyNotice">
+      아직 등록된 행운이 없어요!<br>
+      <span onclick="switchTab('register')">행운을 먼저 등록</span>해 주세요 ✨
+    </p>
+  </div>
+
+  <!-- 탭 네비 (항상 표시) -->
+  <nav>
+    <button class="tab-btn" onclick="switchTab('register')">📝 행운 나누기</button>
+    <button class="tab-btn" onclick="switchTab('list')">🌟 등록된 행운들</button>
+    <button class="tab-btn" onclick="switchTab('people')">📔 행운을 나누어준 사람들</button>
+  </nav>
+
+  <!-- 뷰 2: 등록 -->
+  <div id="view-register" class="view">
+    <div class="form-card">
+      <p class="form-title">✦ 행운 나누기 ✦</p>
+
+      <label for="nickInput">🙂 닉네임</label>
+      <input class="nick-input" id="nickInput" type="text" placeholder="나의 이름 또는 별명" maxlength="20" />
+
+      <label>🖼️ 사진</label>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" accept="image/*" id="fileInput" onchange="handleFile(this)" />
+        <span class="upload-icon">🖼️</span>
+        <span class="upload-text">사진을 눌러 업로드해요</span>
+      </div>
+
+      <label for="msgInput">✍️ 나의 행운</label>
+      <textarea id="msgInput" placeholder="30자 이내" maxlength="30"></textarea>
+
+      <button class="submit-btn" onclick="saveFortune()">🍀 행운 나누기!</button>
+    </div>
+  </div>
+
+  <!-- 뷰 3: 등록된 행운들 -->
+  <div id="view-list" class="view">
+    <div class="list-section">
+      <p class="list-title">✦ 등록된 행운들 ✦</p>
+      <div class="list-title-line"></div>
+      <div class="fortune-grid" id="fortuneGrid"></div>
+      <p class="empty-msg" id="emptyMsg" style="display:none">아직 등록된 행운이 없어요 🥺</p>
+    </div>
+  </div>
+
+  <!-- 뷰 4: 행운을 나누어준 사람들 -->
+  <div id="view-people" class="view">
+    <div class="people-section">
+      <p class="list-title" style="font-size:1.35rem;white-space:nowrap">✦ 행운을 나누어준 사람들 ✦</p>
+      <div class="list-title-line"></div>
+      <div class="people-list" id="peopleList"></div>
+      <p class="empty-msg" id="peopleEmpty" style="display:none">아직 행운을 나누어준 사람이 없어요 🥺</p>
+    </div>
+  </div>
+
+  <!-- 폴라로이드 오버레이 -->
+  <div class="overlay" id="overlay">
+    <button class="overlay-close" onclick="closeOverlay()">✕</button>
+    <div class="polaroid">
+      <div id="polaroidMedia"></div>
+      <div class="polaroid-msg" id="polaroidMsg"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">🍀 행운이 등록됐어요!</div>
+
+  <script>
+    /* ── 탭 전환 ── */
+    function switchTab(tab) {
+      const tabMap = ['register', 'list', 'people'];
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', tabMap[i] === tab);
+      });
+      ['register','list','people'].forEach(v =>
+        document.getElementById('view-' + v).classList.toggle('active', tab === v)
+      );
+      document.body.classList.toggle('scrollable', !!tab);
+      if (tab === 'list') renderList();
+      if (tab === 'people') renderPeople();
+    }
+
+    function renderPeople() {
+      const list  = JSON.parse(localStorage.getItem(KEY) || '[]');
+      const el    = document.getElementById('peopleList');
+      const empty = document.getElementById('peopleEmpty');
+
+      /* 닉네임별 등록 횟수 집계 (닉네임 없는 항목 제외) */
+      const map = {};
+      list.forEach(f => {
+        if (!f.nick) return;
+        map[f.nick] = (map[f.nick] || 0) + 1;
+      });
+
+      const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+
+      if (!entries.length) {
+        el.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      el.innerHTML = entries.map(([name], i) => `
+        <span class="people-name" style="animation-delay:${i * 0.08}s">${esc(name)}</span>
+      `).join('');
+    }
+
+    /* ── 공 생성 (자연스러운 산포) ── */
+    const BALL_DEFS = [
+      { bottom: '#e05c3a' }, { bottom: '#6aabdc' }, { bottom: '#f0a0b8' },
+      { bottom: '#f0a040' }, { bottom: '#90aa50' }, { bottom: '#a06040' },
+    ];
+
+    /* 글로브 안 볼 7개 — 상단 1개 고정, 하단 6개 비규칙 배치 (글로브 타원 안 보장) */
+    const BALL_LAYOUT = [
+      { l: 0.36, t: 0.43, s: 0.155 }, // top center
+      { l: 0.13, t: 0.60, s: 0.155 }, // mid left
+      { l: 0.37, t: 0.53, s: 0.155 }, // mid center (높게)
+      { l: 0.63, t: 0.57, s: 0.155 }, // mid right (중간)
+      { l: 0.19, t: 0.73, s: 0.155 }, // bot left
+      { l: 0.44, t: 0.69, s: 0.155 }, // bot center-right
+      { l: 0.61, t: 0.73, s: 0.155 }, // bot right
+    ];
+
+    const ALL_COLORS = ['#5aa0d0','#d45040','#d4c090','#e090b0','#90a840','#f0a040','#8a5034'];
+
+    function makeBallSVG(s, color, seed, style='') {
+      const r = s / 2;
+      const uid = `bl${seed}`;
+      return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"
+          xmlns="http://www.w3.org/2000/svg"
+          style="position:absolute;${style}overflow:visible">
+        <defs>
+          <filter id="f${uid}" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" seed="${seed}" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3"
+              xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+          <clipPath id="cp${uid}">
+            <circle cx="${r}" cy="${r}" r="${r}"/>
+          </clipPath>
+        </defs>
+        <g filter="url(#f${uid})">
+          <g clip-path="url(#cp${uid})">
+            <!-- 흰/크림 상단 -->
+            <circle cx="${r}" cy="${r}" r="${r}" fill="#fff8f0"/>
+            <!-- 컬러 하단 (50% 기준 수평 분할) -->
+            <rect x="0" y="${r}" width="${s}" height="${r}" fill="${color}"/>
+            <!-- 경계선 살짝 -->
+            <rect x="0" y="${r - 1}" width="${s}" height="2.5" fill="${color}" opacity="0.35"/>
+            <!-- 테두리 -->
+            <circle cx="${r}" cy="${r}" r="${r - 0.5}" fill="none"
+              stroke="${color}" stroke-width="1.8" stroke-opacity="0.4"/>
+          </g>
+        </g>
+        <!-- 하이라이트 -->
+        <ellipse cx="${r * 0.62}" cy="${r * 0.38}" rx="${r * 0.22}" ry="${r * 0.15}"
+          fill="rgba(255,255,255,0.68)"/>
+      </svg>`;
+    }
+
+    const box = document.getElementById('ballsBox');
+    function renderBalls() {
+      const sz = box.offsetWidth;
+      box.style.height = sz + 'px';
+      box.innerHTML = '';
+      BALL_LAYOUT.forEach((pos, i) => {
+        const color = ALL_COLORS[i % ALL_COLORS.length];
+        const l = Math.round(pos.l * sz), t = Math.round(pos.t * sz), s = Math.round(pos.s * sz);
+        box.insertAdjacentHTML('beforeend',
+          makeBallSVG(s, color, i * 17 + 5, `left:${l}px;top:${t}px;`)
+        );
+      });
+    }
+    renderBalls();
+    window.addEventListener('resize', renderBalls);
+
+    /* ── 볼 섞기 물리 애니메이션 ── */
+    function startMixingAnimation(onDone) {
+      const sz = box.offsetWidth;
+      if (!sz) { onDone(); return; }
+
+      // 글로브 타원 중심·반지름 (pixel sampling 기반, ballsBox 비율)
+      const GCX = 0.498, GCY = 0.568;
+      const GRX = 0.402, GRY = 0.326;
+
+      const children = Array.from(box.children);
+      const state = BALL_LAYOUT.map((b, i) => {
+        const br = b.s / 2;
+        const speed = 0.009 + Math.random() * 0.009;
+        const angle  = Math.random() * Math.PI * 2;
+        return {
+          x: b.l + br, y: b.t + br, br,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          el: children[i]
+        };
+      });
+
+      const startTime = performance.now();
+      let lastTime = startTime;
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const scale = Math.min(now - lastTime, 50) / 16.67;
+        lastTime = now;
+
+        state.forEach(b => {
+          b.vy += 0.00022 * scale;      // 중력
+          b.x  += b.vx * scale;
+          b.y  += b.vy * scale;
+
+          // 타원 경계 충돌
+          const effRx = GRX - b.br, effRy = GRY - b.br;
+          const dx = b.x - GCX, dy = b.y - GCY;
+          const test = (dx/effRx)*(dx/effRx) + (dy/effRy)*(dy/effRy);
+          if (test > 1) {
+            const sq = Math.sqrt(test);
+            b.x = GCX + dx / sq * 0.98;
+            b.y = GCY + dy / sq * 0.98;
+            const nx = dx / (effRx*effRx), ny = dy / (effRy*effRy);
+            const nL = Math.sqrt(nx*nx + ny*ny);
+            const nnx = nx/nL, nny = ny/nL;
+            const dot = b.vx*nnx + b.vy*nny;
+            b.vx = (b.vx - 2*dot*nnx) * 0.76;
+            b.vy = (b.vy - 2*dot*nny) * 0.76;
+          }
+
+          // 속도 최솟값 유지
+          if (Math.sqrt(b.vx*b.vx + b.vy*b.vy) < 0.0025) {
+            const a = Math.random() * Math.PI * 2;
+            b.vx += Math.cos(a) * 0.007;
+            b.vy += Math.sin(a) * 0.007;
+          }
+
+          b.el.style.left = Math.round((b.x - b.br) * sz) + 'px';
+          b.el.style.top  = Math.round((b.y - b.br) * sz) + 'px';
+        });
+
+        if (elapsed < 3000) {
+          requestAnimationFrame(step);
+        } else {
+          BALL_LAYOUT.forEach((orig, i) => {
+            state[i].el.style.left = Math.round(orig.l * sz) + 'px';
+            state[i].el.style.top  = Math.round(orig.t * sz) + 'px';
+          });
+          onDone();
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    /* ── 뽑기 ── */
+    function drawFortune() {
+      const fortunes = JSON.parse(localStorage.getItem('haengwoon_fortunes') || '[]');
+      if (!fortunes.length) {
+        document.getElementById('emptyNotice').style.display = 'block';
+        return;
+      }
+      document.getElementById('emptyNotice').style.display = 'none';
+
+      const btn = document.getElementById('drawBtn');
+      btn.disabled = true;
+
+      startMixingAnimation(() => {
+        const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+        showPolaroid(fortune, true);
+        spawnSparkles();
+        btn.disabled = false;
+      });
+    }
+
+    function showPolaroid(f, fromDraw = false) {
+      const polaroid = document.querySelector('.polaroid');
+      polaroid.classList.toggle('no-photo', !f.image);
+      document.getElementById('polaroidMedia').innerHTML = f.image
+        ? `<img class="polaroid-img" src="${f.image}" alt="행운 이미지">`
+        : '';
+
+      const msg = document.getElementById('polaroidMsg');
+      const full = f.message;
+      const needsTrunc = !fromDraw && full.length > 8;
+      msg.textContent = needsTrunc ? full.slice(0, 8) + '...' : full;
+      msg.dataset.full = full;
+      msg.dataset.expanded = fromDraw ? 'true' : 'false';
+      msg.classList.toggle('truncated', needsTrunc);
+
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    document.getElementById('polaroidMsg').addEventListener('click', () => {
+      const msg = document.getElementById('polaroidMsg');
+      if (!msg.classList.contains('truncated')) return;
+      if (msg.dataset.expanded === 'true') {
+        msg.textContent = msg.dataset.full.slice(0, 8) + '...';
+        msg.dataset.expanded = 'false';
+      } else {
+        msg.textContent = msg.dataset.full;
+        msg.dataset.expanded = 'true';
+      }
+    });
+
+    function openFortune(id) {
+      const f = JSON.parse(localStorage.getItem(KEY) || '[]').find(x => x.id === id);
+      if (f) showPolaroid(f, true);
+    }
+
+    function closeOverlay() { document.getElementById('overlay').classList.remove('show'); }
+
+    document.getElementById('overlay').addEventListener('click', e => {
+      if (e.target === document.getElementById('overlay')) closeOverlay();
+    });
+
+    /* ── 반짝이 ── */
+    function spawnSparkles() {
+      ['✨','⭐','🌟','💫','🍊','★','🌼'].forEach((em, i) => {
+        const el = document.createElement('span');
+        el.className = 'sparkle'; el.textContent = em;
+        el.style.left = (15 + Math.random() * 70) + 'vw';
+        el.style.top  = (25 + Math.random() * 45) + 'vh';
+        el.style.animationDelay = (Math.random() * .5) + 's';
+        document.body.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      });
+    }
+
+    /* ── 행운 나누기 ── */
+    const KEY = 'haengwoon_fortunes';
+    let previewUrl = null;
+
+    function handleFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewUrl = e.target.result;
+        const area = document.getElementById('uploadArea');
+        area.querySelector('img')?.remove();
+        area.querySelector('.upload-icon').style.display = 'none';
+        area.querySelector('.upload-text').style.display = 'none';
+        const img = document.createElement('img'); img.src = previewUrl;
+        area.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveFortune() {
+      const nick = document.getElementById('nickInput').value.trim();
+      const msg  = document.getElementById('msgInput').value.trim();
+      if (!msg) { document.getElementById('msgInput').focus(); return; }
+
+      const list = JSON.parse(localStorage.getItem(KEY) || '[]');
+      list.push({ id: Date.now(), image: previewUrl, message: msg, nick });
+      localStorage.setItem(KEY, JSON.stringify(list));
+
+      previewUrl = null;
+      document.getElementById('nickInput').value = '';
+      document.getElementById('msgInput').value = '';
+      document.getElementById('fileInput').value = '';
+      const area = document.getElementById('uploadArea');
+      area.querySelector('img')?.remove();
+      area.querySelector('.upload-icon').style.display = '';
+      area.querySelector('.upload-text').style.display = '';
+
+      showToast();
+    }
+
+    function deleteFortune(id) {
+      localStorage.setItem(KEY, JSON.stringify(
+        JSON.parse(localStorage.getItem(KEY) || '[]').filter(f => f.id !== id)
+      ));
+      renderList();
+    }
+
+    const ROTS = [-4,-2,1,3,-3,2,-1,4];
+
+    function renderList() {
+      const list  = JSON.parse(localStorage.getItem(KEY) || '[]');
+      const grid  = document.getElementById('fortuneGrid');
+      const empty = document.getElementById('emptyMsg');
+      if (!list.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      grid.innerHTML = list.map((f, i) => {
+        const preview = f.image
+          ? (f.message.length > 8 ? f.message.slice(0, 8) + '...' : f.message)
+          : f.message;
+        const msgHtml = f.image
+          ? esc(preview)
+          : `<span>${esc(preview)}</span>`;
+        return `
+        <div class="mini-polaroid${f.image ? '' : ' no-photo'}" style="--rot:${ROTS[i%ROTS.length]}deg" onclick="openFortune(${f.id})">
+          ${f.image ? `<img src="${f.image}" alt="">` : ''}
+          <div class="mini-msg">${msgHtml}</div>
+          <button class="del-btn" onclick="event.stopPropagation();deleteFortune(${f.id})">✕</button>
+        </div>`;
+      }).join('');
+    }
+
+    function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function showToast() {
+      const t = document.getElementById('toast');
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+    /* 이미지 배경색 자동 추출 */
+    (function() {
+      const img = document.querySelector('.machine-img');
+      function sampleBg() {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = canvas.height = 1;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, 1, 1);
+          const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+          if (r === 0 && g === 0 && b === 0) return;
+          const hex = '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+          document.documentElement.style.setProperty('--yellow', hex);
+          document.body.style.background = hex;
+        } catch(e) {}
+      }
+      if (img.complete) sampleBg();
+      else img.addEventListener('load', sampleBg);
+    })();
+  </script>
+</body>
+</html>
