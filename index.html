@@ -548,7 +548,30 @@
 
   <div class="toast" id="toast">🍀 행운이 등록됐어요!</div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAa_DNaRrQY7g3J1h3l4gJBg0blToK0m-s",
+      authDomain: "goodluck-fed5e.firebaseapp.com",
+      projectId: "goodluck-fed5e",
+      storageBucket: "goodluck-fed5e.firebasestorage.app",
+      messagingSenderId: "505741550477",
+      appId: "1:505741550477:web:7c944404b1bb93b73a93c4"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const fortunesRef = collection(db, 'fortunes');
+
+    let fortuneCache = [];
+
+    onSnapshot(query(fortunesRef, orderBy('timestamp', 'asc')), snap => {
+      fortuneCache = snap.docs.map(d => ({ fid: d.id, ...d.data() }));
+      renderList();
+      renderPeople();
+    });
+
     /* ── 탭 전환 ── */
     function switchTab(tab) {
       const tabMap = ['register', 'list', 'people'];
@@ -559,12 +582,10 @@
         document.getElementById('view-' + v).classList.toggle('active', tab === v)
       );
       document.body.classList.toggle('scrollable', !!tab);
-      if (tab === 'list') renderList();
-      if (tab === 'people') renderPeople();
     }
 
     function renderPeople() {
-      const list  = JSON.parse(localStorage.getItem(KEY) || '[]');
+      const list  = fortuneCache;
       const el    = document.getElementById('peopleList');
       const empty = document.getElementById('peopleEmpty');
 
@@ -736,8 +757,7 @@
 
     /* ── 뽑기 ── */
     function drawFortune() {
-      const fortunes = JSON.parse(localStorage.getItem('haengwoon_fortunes') || '[]');
-      if (!fortunes.length) {
+      if (!fortuneCache.length) {
         document.getElementById('emptyNotice').style.display = 'block';
         return;
       }
@@ -747,7 +767,7 @@
       btn.disabled = true;
 
       startMixingAnimation(() => {
-        const fortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+        const fortune = fortuneCache[Math.floor(Math.random() * fortuneCache.length)];
         showPolaroid(fortune, true);
         spawnSparkles();
         btn.disabled = false;
@@ -784,8 +804,8 @@
       }
     });
 
-    function openFortune(id) {
-      const f = JSON.parse(localStorage.getItem(KEY) || '[]').find(x => x.id === id);
+    function openFortune(fid) {
+      const f = fortuneCache.find(x => x.fid === fid);
       if (f) showPolaroid(f, true);
     }
 
@@ -809,8 +829,26 @@
     }
 
     /* ── 행운 나누기 ── */
-    const KEY = 'haengwoon_fortunes';
     let previewUrl = null;
+
+    function compressImage(dataUrl) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 600;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = dataUrl;
+      });
+    }
 
     function handleFile(input) {
       const file = input.files[0];
@@ -828,14 +866,18 @@
       reader.readAsDataURL(file);
     }
 
-    function saveFortune() {
+    async function saveFortune() {
       const nick = document.getElementById('nickInput').value.trim();
       const msg  = document.getElementById('msgInput').value.trim();
       if (!msg) { document.getElementById('msgInput').focus(); return; }
 
-      const list = JSON.parse(localStorage.getItem(KEY) || '[]');
-      list.push({ id: Date.now(), image: previewUrl, message: msg, nick });
-      localStorage.setItem(KEY, JSON.stringify(list));
+      const btn = document.querySelector('.submit-btn');
+      btn.disabled = true;
+
+      let image = previewUrl;
+      if (image) image = await compressImage(image);
+
+      await addDoc(fortunesRef, { image: image || null, message: msg, nick: nick || '', timestamp: Date.now() });
 
       previewUrl = null;
       document.getElementById('nickInput').value = '';
@@ -846,20 +888,18 @@
       area.querySelector('.upload-icon').style.display = '';
       area.querySelector('.upload-text').style.display = '';
 
+      btn.disabled = false;
       showToast();
     }
 
-    function deleteFortune(id) {
-      localStorage.setItem(KEY, JSON.stringify(
-        JSON.parse(localStorage.getItem(KEY) || '[]').filter(f => f.id !== id)
-      ));
-      renderList();
+    async function deleteFortune(fid) {
+      await deleteDoc(doc(db, 'fortunes', fid));
     }
 
     const ROTS = [-4,-2,1,3,-3,2,-1,4];
 
     function renderList() {
-      const list  = JSON.parse(localStorage.getItem(KEY) || '[]');
+      const list  = fortuneCache;
       const grid  = document.getElementById('fortuneGrid');
       const empty = document.getElementById('emptyMsg');
       if (!list.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -868,14 +908,12 @@
         const preview = f.image
           ? (f.message.length > 8 ? f.message.slice(0, 8) + '...' : f.message)
           : f.message;
-        const msgHtml = f.image
-          ? esc(preview)
-          : `<span>${esc(preview)}</span>`;
+        const msgHtml = f.image ? esc(preview) : `<span>${esc(preview)}</span>`;
         return `
-        <div class="mini-polaroid${f.image ? '' : ' no-photo'}" style="--rot:${ROTS[i%ROTS.length]}deg" onclick="openFortune(${f.id})">
+        <div class="mini-polaroid${f.image ? '' : ' no-photo'}" style="--rot:${ROTS[i%ROTS.length]}deg" onclick="openFortune('${f.fid}')">
           ${f.image ? `<img src="${f.image}" alt="">` : ''}
           <div class="mini-msg">${msgHtml}</div>
-          <button class="del-btn" onclick="event.stopPropagation();deleteFortune(${f.id})">✕</button>
+          <button class="del-btn" onclick="event.stopPropagation();deleteFortune('${f.fid}')">✕</button>
         </div>`;
       }).join('');
     }
@@ -888,7 +926,7 @@
       setTimeout(() => t.classList.remove('show'), 2500);
     }
     /* 이미지 배경색 자동 추출 */
-    (function() {
+    (() => {
       const img = document.querySelector('.machine-img');
       function sampleBg() {
         try {
@@ -906,6 +944,15 @@
       if (img.complete) sampleBg();
       else img.addEventListener('load', sampleBg);
     })();
+
+    /* type="module" 스크립트에서 inline onclick 사용을 위해 전역 노출 */
+    window.switchTab    = switchTab;
+    window.drawFortune  = drawFortune;
+    window.handleFile   = handleFile;
+    window.saveFortune  = saveFortune;
+    window.deleteFortune = deleteFortune;
+    window.openFortune  = openFortune;
+    window.closeOverlay = closeOverlay;
   </script>
 </body>
 </html>
