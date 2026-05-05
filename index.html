@@ -439,6 +439,7 @@
       animation: popIn .45s cubic-bezier(.34,1.56,.64,1) both;
       display: flex; flex-direction: column;
       filter: url(#crayon);
+      overflow: hidden;
     }
 
     @keyframes popIn {
@@ -455,6 +456,9 @@
       text-align: center; line-height: 1.5;
       padding: 14px 8px 10px;
       cursor: default;
+      word-break: break-all;
+      overflow-wrap: break-word;
+      overflow: hidden;
     }
     .polaroid-msg.truncated { cursor: pointer; }
 
