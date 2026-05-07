@@ -509,6 +509,14 @@
       background: rgba(255,255,255,.7); color: var(--muted);
       border: 2.5px solid var(--orange);
     }
+    .pw-delete-btn {
+      background: var(--orange); color: #fff;
+      box-shadow: 0 4px 0 var(--orange-dark);
+    }
+    .pw-box-msg {
+      font-size: 1.3rem; color: var(--text);
+      margin-bottom: 20px; text-align: center;
+    }
 
     /* 토스트 */
     .toast {
@@ -638,11 +646,23 @@
   <!-- 비밀번호 확인 팝업 -->
   <div class="pw-modal" id="pwModal">
     <div class="pw-box">
-      <p class="pw-box-title">🔒 비밀번호 확인</p>
-      <input type="password" id="pwModalInput" placeholder="비밀번호를 입력해주세요" maxlength="20" />
-      <div class="pw-box-btns">
-        <button class="pw-cancel-btn" onclick="closePwModal()">취소</button>
-        <button class="pw-confirm-btn" onclick="confirmPwModal()">확인</button>
+      <!-- 1단계: 비밀번호 입력 -->
+      <div id="pwStep1">
+        <p class="pw-box-title">🔒 비밀번호 확인</p>
+        <input type="password" id="pwModalInput" placeholder="비밀번호를 입력해주세요" maxlength="20" />
+        <div class="pw-box-btns">
+          <button class="pw-cancel-btn" onclick="closePwModal()">취소</button>
+          <button class="pw-confirm-btn" onclick="confirmPwModal()">확인</button>
+        </div>
+      </div>
+      <!-- 2단계: 삭제 확인 -->
+      <div id="pwStep2" style="display:none">
+        <p class="pw-box-title">🗑️ 삭제 확인</p>
+        <p class="pw-box-msg">삭제하시겠습니까?</p>
+        <div class="pw-box-btns">
+          <button class="pw-cancel-btn" onclick="closePwModal()">아니오</button>
+          <button class="pw-confirm-btn pw-delete-btn" onclick="doDelete()">예</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1002,14 +1022,20 @@
       if (f && f.password) {
         _pendingDeleteFid = fid;
         document.getElementById('pwModalInput').value = '';
+        document.getElementById('pwModalInput').placeholder = '비밀번호를 입력해주세요';
+        document.getElementById('pwStep1').style.display = '';
+        document.getElementById('pwStep2').style.display = 'none';
         document.getElementById('pwModal').classList.add('show');
         setTimeout(() => document.getElementById('pwModalInput').focus(), 80);
       } else {
-        deleteDoc(doc(db, 'fortunes', fid));
+        _pendingDeleteFid = fid;
+        document.getElementById('pwStep1').style.display = 'none';
+        document.getElementById('pwStep2').style.display = '';
+        document.getElementById('pwModal').classList.add('show');
       }
     }
 
-    async function confirmPwModal() {
+    function confirmPwModal() {
       const f = fortuneCache.find(x => x.fid === _pendingDeleteFid);
       const input = document.getElementById('pwModalInput').value;
       if (!f) { closePwModal(); return; }
@@ -1019,9 +1045,16 @@
         document.getElementById('pwModalInput').focus();
         return;
       }
+      // 비밀번호 맞음 → 2단계로
+      document.getElementById('pwStep1').style.display = 'none';
+      document.getElementById('pwStep2').style.display = '';
+    }
+
+    async function doDelete() {
+      if (!_pendingDeleteFid) return;
+      const fid = _pendingDeleteFid;
       closePwModal();
-      await deleteDoc(doc(db, 'fortunes', _pendingDeleteFid));
-      _pendingDeleteFid = null;
+      await deleteDoc(doc(db, 'fortunes', fid));
     }
 
     function closePwModal() {
@@ -1110,6 +1143,7 @@
     window.closeOverlay  = closeOverlay;
     window.confirmPwModal = confirmPwModal;
     window.closePwModal   = closePwModal;
+    window.doDelete       = doDelete;
   </script>
 </body>
 </html>
