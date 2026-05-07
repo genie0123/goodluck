@@ -837,20 +837,20 @@
           b.x  += b.vx * scale;
           b.y  += b.vy * scale;
 
-          // 타원 경계 충돌
-          const effRx = GRX - b.br, effRy = GRY - b.br;
+          // 타원 경계 충돌 (effRx/effRy 를 5% 추가 줄여 시각적 여유 확보)
+          const effRx = (GRX - b.br) * 0.95, effRy = (GRY - b.br) * 0.95;
           const dx = b.x - GCX, dy = b.y - GCY;
           const test = (dx/effRx)*(dx/effRx) + (dy/effRy)*(dy/effRy);
           if (test > 1) {
             const sq = Math.sqrt(test);
-            b.x = GCX + dx / sq * 0.98;
-            b.y = GCY + dy / sq * 0.98;
+            b.x = GCX + dx / sq * 0.88;
+            b.y = GCY + dy / sq * 0.88;
             const nx = dx / (effRx*effRx), ny = dy / (effRy*effRy);
             const nL = Math.sqrt(nx*nx + ny*ny);
             const nnx = nx/nL, nny = ny/nL;
             const dot = b.vx*nnx + b.vy*nny;
-            b.vx = (b.vx - 2*dot*nnx) * 0.76;
-            b.vy = (b.vy - 2*dot*nny) * 0.76;
+            b.vx = (b.vx - 2*dot*nnx) * 0.60;
+            b.vy = (b.vy - 2*dot*nny) * 0.60;
           }
 
           // 속도 최솟값 유지
