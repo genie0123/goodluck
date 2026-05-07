@@ -552,6 +552,9 @@
       <label for="msgInput">✍️ 나의 행운</label>
       <textarea id="msgInput" placeholder="30자 이내" maxlength="30"></textarea>
 
+      <label for="pwInput">🔒 비밀번호</label>
+      <input class="nick-input" id="pwInput" type="password" placeholder="나중에 삭제할 때 필요해요" maxlength="20" />
+
       <button class="submit-btn" onclick="saveFortune()">🍀 행운 나누기!</button>
     </div>
   </div>
@@ -909,6 +912,7 @@
     async function saveFortune() {
       const nick = document.getElementById('nickInput').value.trim();
       const msg  = document.getElementById('msgInput').value.trim();
+      const pw   = document.getElementById('pwInput').value.trim();
       if (!msg) { document.getElementById('msgInput').focus(); return; }
 
       const btn = document.querySelector('.submit-btn');
@@ -917,11 +921,12 @@
       let image = previewUrl;
       if (image) image = await compressImage(image);
 
-      await addDoc(fortunesRef, { image: image || null, message: msg, nick: nick || '', timestamp: Date.now() });
+      await addDoc(fortunesRef, { image: image || null, message: msg, nick: nick || '', password: pw || '', timestamp: Date.now() });
 
       previewUrl = null;
       document.getElementById('nickInput').value = '';
       document.getElementById('msgInput').value = '';
+      document.getElementById('pwInput').value = '';
       document.getElementById('fileInput').value = '';
       const area = document.getElementById('uploadArea');
       area.querySelector('img')?.remove();
@@ -933,6 +938,12 @@
     }
 
     async function deleteFortune(fid) {
+      const f = fortuneCache.find(x => x.fid === fid);
+      if (f && f.password) {
+        const input = prompt('🔒 비밀번호를 입력해주세요');
+        if (input === null) return;
+        if (input !== f.password) { alert('비밀번호가 틀렸어요 🥺'); return; }
+      }
       await deleteDoc(doc(db, 'fortunes', fid));
     }
 
