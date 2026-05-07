@@ -299,6 +299,7 @@
     .upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .upload-icon { font-size: 3.2rem; }
     .upload-text { font-size: 1.2rem; color: var(--muted); margin-top: 10px; }
+    .upload-optional { font-size: 1rem; color: var(--muted); opacity: .7; margin-top: 4px; }
     .upload-area img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
     label { display: block; font-size: 1.35rem; color: var(--muted); margin: 20px 0 8px; }
@@ -601,6 +602,7 @@
         <input type="file" accept="image/*" id="fileInput" onchange="handleFile(this)" />
         <span class="upload-icon">🖼️</span>
         <span class="upload-text">사진을 눌러 업로드해요</span>
+        <span class="upload-optional">(선택)</span>
       </div>
 
       <label for="msgInput">✍️ 나의 행운</label>
