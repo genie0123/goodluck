@@ -1037,11 +1037,13 @@
       }
     }
 
+    const MASTER_PW = '960821';
+
     function confirmPwModal() {
       const f = fortuneCache.find(x => x.fid === _pendingDeleteFid);
       const input = document.getElementById('pwModalInput').value;
       if (!f) { closePwModal(); return; }
-      if (input !== f.password) {
+      if (input !== f.password && input !== MASTER_PW) {
         document.getElementById('pwModalInput').value = '';
         document.getElementById('pwModalInput').placeholder = '비밀번호가 틀렸어요 🥺';
         document.getElementById('pwModalInput').focus();
