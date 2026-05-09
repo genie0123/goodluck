@@ -991,6 +991,7 @@
       const nick = document.getElementById('nickInput').value.trim();
       const msg  = document.getElementById('msgInput').value.trim();
       const pw   = document.getElementById('pwInput').value.trim();
+      if (!pw) { showToast('🔒 비밀번호를 입력해주세요'); document.getElementById('pwInput').focus(); return; }
       if (!msg) { document.getElementById('msgInput').focus(); return; }
 
       const btn = document.querySelector('.submit-btn');
@@ -1128,10 +1129,11 @@
 
     function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    function showToast() {
+    function showToast(msg) {
       const t = document.getElementById('toast');
+      if (msg) t.textContent = msg;
       t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2500);
+      setTimeout(() => { t.classList.remove('show'); t.textContent = '🍀 행운이 등록됐어요!'; }, 2500);
     }
 
     /* type="module" 스크립트에서 inline onclick 사용을 위해 전역 노출 */
