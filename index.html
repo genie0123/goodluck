@@ -324,7 +324,14 @@
       transition: border-color .2s; line-height: 1.5;
     }
     textarea:focus { border-color: var(--orange-dark); background: rgba(255,232,128,.35); }
-    textarea::placeholder { color: #c8a060; font-size: 1.35rem; }
+    .textarea-wrap { position: relative; }
+    .fake-ph {
+      position: absolute; top: 12px; left: 16px;
+      pointer-events: none; color: #c8a060;
+      font-family: 'Gaegu', cursive; line-height: 1.5;
+    }
+    .fake-ph-main { font-size: 1.35rem; }
+    .fake-ph-sub { font-size: 1.0rem; white-space: nowrap; }
 
     .submit-btn {
       display: block; width: 100%; margin-top: 22px; padding: 14px;
@@ -604,7 +611,13 @@
       </div>
 
       <label for="msgInput">✍️ 나의 행운</label>
-      <textarea id="msgInput" placeholder="30자 이내&#10;(등록된 행운들을 참고해요)" maxlength="30"></textarea>
+      <div class="textarea-wrap">
+        <textarea id="msgInput" maxlength="30"></textarea>
+        <div class="fake-ph" id="msgPh">
+          <span class="fake-ph-main">30자 이내</span><br>
+          <span class="fake-ph-sub">(등록된 행운들을 참고해요)</span>
+        </div>
+      </div>
 
       <label for="pwInput">🔒 비밀번호</label>
       <input class="nick-input" id="pwInput" type="password" placeholder="삭제할 때 필요해요" maxlength="20" />
@@ -1005,6 +1018,7 @@
       previewUrl = null;
       document.getElementById('nickInput').value = '';
       document.getElementById('msgInput').value = '';
+      document.getElementById('msgPh').style.display = '';
       document.getElementById('pwInput').value = '';
       document.getElementById('fileInput').value = '';
       const area = document.getElementById('uploadArea');
@@ -1137,6 +1151,10 @@
     }
 
     /* type="module" 스크립트에서 inline onclick 사용을 위해 전역 노출 */
+    document.getElementById('msgInput').addEventListener('input', function() {
+      document.getElementById('msgPh').style.display = this.value ? 'none' : '';
+    });
+
     window.switchTab     = switchTab;
     window.goPage        = goPage;
     window.drawFortune   = drawFortune;
